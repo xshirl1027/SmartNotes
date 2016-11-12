@@ -111,7 +111,11 @@ class Definition_List:
 
 newlist = Definition_List()
 newnode = Node("hi")
-newdef = Definition("asia", "a eastern continent")
+newdef = Definition("Asia", "An eastern continent")
+newdef2 = Definition("America", "A country on fire")
+newdef.incre_ref(2)
+newdef2.incre_ref(4)
+newlist.add_term(newdef2)
 newlist.add_term(newdef)
 newlist.print_list()
 #newlist.print_list()
