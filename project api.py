@@ -16,17 +16,17 @@ class Node:
     def get_id():
         return ID
     
-    def set_name(self,name): #name will only be set if concept_node class is invoked
-        self.name = name
-    
     def set_text(self,text): #update text
         self.text = text
     
     def get_string(self): #return the entire node in string
         return self.name+" "+self.text
         
-    def add_con(self, new_con): #add a connection to another node
-        self.connections.insert(0,new_con)
+    def add_con(self, node_id): #add a connection to another node
+        self.connections.insert(0, node_id)
+        
+    def remove_con(self, node_id):
+        self.connections.remove(node_id);
     
     def set_priority(self,priority):
         self.priority = priority
@@ -41,11 +41,10 @@ class Concept_Node(Node):
     
     def __init__(self, name, text):
         Node.__init__(text)
-        Node.set_name(name)
+        Node.name = name
 
     def get_name():
         Node.get_name()
-        
 
 
 class Definition():
@@ -86,7 +85,22 @@ class Definition():
 class Graph:
     '''store and maintain network of nodes'''
     #update definition list whenever a new node is added
+    graph = None
+    root = None #graph must contain at least 1 node
+    max_level = 0
+    def __init__(self):
+        self.graph = dict()
+        root = Node("enter text", None)
+        max_level = 1
+
+    def add_node(self, node):
+        self.graph[node.get_id()] = node
     
+    def add_connection(self, node1, node2):
+        node1.add_con(node2.get_id())
+    
+    def remove_connection(self, node1, node2):
+        node1.remove_con(node2.get_id())
     
     
     
@@ -109,8 +123,7 @@ class Definition_List:
         for term in self.dictionary:
             print(term.get_string())
 
-  
-         
+        
 def test_defintion_heap():
     newnode = Node("hi", None)
     newdef = Definition("Asia", "An eastern continent")
@@ -126,10 +139,9 @@ def test_defintion_heap():
 def test_parse_node():
     dictionary = Definition_List()
     graph = Graph()    
-    testnode = Node("China is a country in Asia that has been occupied by America America America Military in the 1940s. It is also the largest country in Asia", None)
+    testnode = Node("China is a country in Asia Asia Asia Asia Asia Asia that has been occupied by America America America Military in the 1940s. It is also the largest country in Asia", None)
     newdef = Definition("Asia", "An eastern continent")
     newdef2 = Definition("America", "A country on fire")    
-
     dictionary.add_term(newdef)
     dictionary.add_term(newdef2)
     dictionary.parse_node(testnode)
@@ -138,5 +150,3 @@ def test_parse_node():
     
 
 test_parse_node()
-
-    
