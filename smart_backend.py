@@ -5,50 +5,60 @@ class Node:
     ID = 0
     name = ''
     text = ''
-    connections = []
+    connections = dict()
     height= 1
     visibility = True
     
     def __init__(self, text): #by default, Node is init as a comment node without name
         self.ID = id
         self.text = text    
-        
+    
+    def update_height(self):
+        if (len(self.connections) == 0):
+            self.height = 1
+        else:
+            self.height = 1 + max(self.connections.values())
+    
     def get_id(self):
         return self.ID
-    
+
     def set_text(self,text): #update text
         self.text = text
-    
+
     def set_visibility(self, visible):
         self.visibility = visible
-    
+
     def is_visible(self):
         return self.visibility
-    
+
     def string(self): #return the entire node in string
         if(self.name == ''):
             return self.text
         return self.name+" "+self.text
-        
-    def add_con(self, node_id, node_height): #add a connection to another node
-        self.connections.insert(0, node_id)
-        self.height+=node_height
-        
-    def remove_con(self, node_id, node_height):
-        self.connections.remove(node_id);
-        self.height-=node_height
-        
+
+    def add_con(self, node): #add a connection to another node
+        self.connections[node] = node.get_height()
+        self.update_height()
+
+    def remove_con(self, node):
+        del self.connections[node];
+        self.update_height()
+
+    def get_con(self):
+        return self.connections
+
     def set_height(self, h):    
         self.height = h
-    
+
     def get_height(self):
+        self.update_height()
         return self.height
-        
+
         
 class Concept_Node(Node): 
     '''node specialized for storing major concepts'''
     priority = 0
-    
+
     def __init__(self, name, text):
         Node.__init__(text)
         Node.name = name
@@ -113,26 +123,30 @@ class Definition_List:
 class Graph:
     '''store and maintain network of nodes'''
     #update definition list whenever a new node is added
-    graph = None
-    root = None #graph must contain at least 1 node
-    height = 0
+    graph = []
+    root = Node("enter text") #graph must contain at least 1 node
+    height = 1
     def __init__(self):
-        self.graph = list()
-        root = Node("enter text")
-        self.graph.insert(0,root)
+       # self.graph = list()
+        self.graph.insert(0,self.root)
         
-
+    def update_height(self):
+        self.root.update_height()
+    
+    def get_height(self):
+        self.height = self.root.get_height()
+        return self.height
+    
     def add_node(self, node):
         self.graph.insert(0,node)
-    
+        
     def connect_to(self, node1, node2):
-        node1.add_con(node2.get_id(), node2.get_height())
+        node1.add_con(node2)
+        self.update_height()
     
-    def disconnect_from(self, node2, node1):
-        node1.remove_con(node2.get_id(), node2.get_height())
-    
-    def get_tree_height(self):
-        return root.get_height()
+    def disconnect_from(self, node1, node2):
+        node1.remove_con(node2)
+        self.update_height()
     
     def get(self):
         return self.graph
