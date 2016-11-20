@@ -5,35 +5,45 @@ class Node:
     ID = 0
     name = ''
     text = ''
-    priority = 0
     connections = []
+    height= 1
+    visibility = True
     
-    def __init__(self, text, con): #by default, Node is init as a comment node without name
+    def __init__(self, text): #by default, Node is init as a comment node without name
         self.ID = id
-        self.text = text
-        self.connections.insert(0, con)
+        self.text = text    
         
-    def get_id():
-        return ID
+    def get_id(self):
+        return self.ID
     
     def set_text(self,text): #update text
         self.text = text
     
-    def get_string(self): #return the entire node in string
+    def set_visibility(self, visible):
+        self.visibility = visible
+    
+    def is_visible(self):
+        return self.visibility
+    
+    def string(self): #return the entire node in string
+        if(self.name == ''):
+            return self.text
         return self.name+" "+self.text
         
-    def add_con(self, node_id): #add a connection to another node
+    def add_con(self, node_id, node_height): #add a connection to another node
         self.connections.insert(0, node_id)
+        self.height+=node_height
         
-    def remove_con(self, node_id):
+    def remove_con(self, node_id, node_height):
         self.connections.remove(node_id);
+        self.height-=node_height
+        
+    def set_height(self, h):    
+        self.height = h
     
-    def set_priority(self,priority):
-        self.priority = priority
-    
-    def get_priority(self):
-        return self.priority
-
+    def get_height(self):
+        return self.height
+        
         
 class Concept_Node(Node): 
     '''node specialized for storing major concepts'''
@@ -71,7 +81,7 @@ class Definition():
     def get_def(self):
         return self.definition
     
-    def get_string(self):
+    def string(self):
         return self.term + ": "+ self.definition
     
     def __lt__(self,other):
@@ -80,29 +90,6 @@ class Definition():
         return self.reference == other.reference
     def __str__(self):
         return str(self.reference)    
-    
-    
-class Graph:
-    '''store and maintain network of nodes'''
-    #update definition list whenever a new node is added
-    graph = None
-    root = None #graph must contain at least 1 node
-    max_level = 0
-    def __init__(self):
-        self.graph = dict()
-        root = Node("enter text", None)
-        max_level = 1
-
-    def add_node(self, node):
-        self.graph[node.get_id()] = node
-    
-    def add_connection(self, node1, node2):
-        node1.add_con(node2.get_id())
-    
-    def remove_connection(self, node1, node2):
-        node1.remove_con(node2.get_id())
-    
-    
     
 class Definition_List:
     '''self-organizing priority queue that acts as an observer for Graph'''
@@ -114,18 +101,44 @@ class Definition_List:
         heapq.heapify(self.dictionary)
         
     def parse_node(self,node): #increment reference of definition based on number of occurrence in this node
-        node_str = node.get_string()
+        node_str = node.string()
         for term in self.dictionary:
             term.incre_ref(node_str.count(term.get_term()))
         heapq.heapify(self.dictionary)
     
     def print_list(self):
         for term in self.dictionary:
-            print(term.get_string())
+            print(term.string())
 
+class Graph:
+    '''store and maintain network of nodes'''
+    #update definition list whenever a new node is added
+    graph = None
+    root = None #graph must contain at least 1 node
+    height = 0
+    def __init__(self):
+        self.graph = list()
+        root = Node("enter text")
+        self.graph.insert(0,root)
         
+
+    def add_node(self, node):
+        self.graph.insert(0,node)
+    
+    def connect_to(self, node1, node2):
+        node1.add_con(node2.get_id(), node2.get_height())
+    
+    def disconnect_from(self, node2, node1):
+        node1.remove_con(node2.get_id(), node2.get_height())
+    
+    def get_tree_height(self):
+        return root.get_height()
+    
+    def get(self):
+        return self.graph
+    
 def test_defintion_heap():
-    newnode = Node("hi", None)
+    newnode = Node("hi")
     newdef = Definition("Asia", "An eastern continent")
     newdef2 = Definition("America", "A country on fire")
     newdef.incre_ref(4)
@@ -139,7 +152,7 @@ def test_defintion_heap():
 def test_parse_node():
     dictionary = Definition_List()
     graph = Graph()    
-    testnode = Node("China is a country in Asia Asia Asia Asia Asia Asia that has been occupied by America America America Military in the 1940s. It is also the largest country in Asia", None)
+    testnode = Node("China is a country in Asia Asia Asia Asia Asia Asia that has been occupied by America America America Military in the 1940s. It is also the largest country in Asia")
     newdef = Definition("Asia", "An eastern continent")
     newdef2 = Definition("America", "A country on fire")    
     dictionary.add_term(newdef)
