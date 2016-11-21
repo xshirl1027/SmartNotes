@@ -1,7 +1,7 @@
 import heapq
 
 class Node: 
-    '''super class for main data structure'''
+    '''super class for mindmap node'''
     ID = 0
     name = ''
     text = ''
@@ -9,18 +9,16 @@ class Node:
     height= 1
     visibility = True
     
-    def __init__(self, text): #by default, Node is init as a comment node without name
+    def __init__(self, text): #initialized as a comment node without name
         self.ID = id
         self.text = text    
     
-    def update_height(self):
+    def update_height(self): 
+        '''find the height of tallest child and +1'''
         if (len(self.connections) == 0):
             self.height = 1
         else:
             self.height = 1 + max(self.connections.values())
-    
-    def get_id(self):
-        return self.ID
 
     def set_text(self,text): #update text
         self.text = text
@@ -44,14 +42,14 @@ class Node:
         del self.connections[node];
         self.update_height()
 
-    def get_con(self):
+    def get_con(self): #return dictionary of all connections: nodes as keys and height as value
         return self.connections
 
     def set_height(self, h):    
         self.height = h
 
     def get_height(self):
-        self.update_height()
+        self.update_height() #precautious update
         return self.height
 
         
@@ -68,6 +66,8 @@ class Concept_Node(Node):
 
 
 class Definition():
+    '''definition are implemented as priority queue elements. Number of reference is 
+    value of comparison'''
     term = ''
     definition = ''
     reference = 0
@@ -102,10 +102,10 @@ class Definition():
         return str(self.reference)    
     
 class Definition_List:
-    '''self-organizing priority queue that acts as an observer for Graph'''
+    '''list structure that acts as self-organizing priority queue for definitions
+    -Should be initialized in main program. 
+    -parse_node should be evoked everytime a new node is generated'''
     dictionary = []
-    
-    observing = None
     def add_term(self,definition):
         self.dictionary.insert(0,definition)
         heapq.heapify(self.dictionary)
@@ -121,7 +121,8 @@ class Definition_List:
             print(term.string())
 
 class Graph:
-    '''store and maintain network of nodes'''
+    '''store and maintain network of nodes
+    only add_node(), connect_to, disconnect_from should be evoked, rest are helpers'''
     #update definition list whenever a new node is added
     graph = []
     root = Node("enter text") #graph must contain at least 1 node
