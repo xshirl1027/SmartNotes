@@ -16,7 +16,7 @@ class FrontEndNode:
         self.i = i
         self.x = x
         self.y = y
-        self.connection_list = {}
+        self.connection_list = []
 
     def get_x(self):
         return self.x
@@ -26,6 +26,13 @@ class FrontEndNode:
 
     def get_i(self):
         return self.i
+
+    def get_connections(self):
+        return self.connection_list
+
+    def append_connections(self, line):
+        self.connection_list.append(line)
+        
 
 def is_in_node(x, y, cir_x, cir_y):
     if x > cir_x - 50:
@@ -52,16 +59,36 @@ def switch_on_make_line():
     else:
         make_line_switch = 0
 
+def switch_on_del():
+    global del_switch
+
+    if del_switch == 0:
+        del_switch = 1
+    else:
+        del_switch = 0
+
 def make_circle(event):
     global make_circle_switch
     global make_line_switch
     global line_pos
+    global del_switch
     
     if make_circle_switch == 1: 
         arc = main_window.create_oval(event.x - 50, event.y - 50, event.x + 50, event.y + 50, fill="red")
         fnode = FrontEndNode(event.x, event.y, arc)
         circ_list.append(fnode)
         make_circle_switch = 0
+
+    elif del_switch == 1:
+        for i in range(len(circ_list)):
+            if is_in_node(event.x, event.y, circ_list[i].get_x(), circ_list[i].get_y()):
+                for line in circ_list[i].get_connections():
+                    main_window.delete(line)
+                main_window.delete(circ_list[i].get_i())
+                circ_list.pop(i)
+                del_switch = 0
+                break
+                    
 
     elif make_line_switch != 0:
         for cir in circ_list:
@@ -71,21 +98,14 @@ def make_circle(event):
                 break
 
         if make_line_switch == 3:
-            main_window.create_line(line_pos[0].get_x(), line_pos[0].get_y(), line_pos[1].get_x(), line_pos[1].get_y(), width=7)
+            line = main_window.create_line(line_pos[0].get_x(), line_pos[0].get_y(), line_pos[1].get_x(), line_pos[1].get_y(), width=7)
+            line_pos[0].append_connections(line)
+            line_pos[1].append_connections(line)
             main_window.tag_raise(line_pos[0].get_i())
             main_window.tag_raise(line_pos[1].get_i())
             make_line_switch = 0
             line_pos = []
-
-def remove_circle():
-    """
-    if (len(circ_list) == 0):
-        pass
-    else:
-        main_window.delete(circ_list.pop())
-    """
-    pass
-
+    
 if __name__ == "__main__":
 
     #Initialize Window
@@ -97,6 +117,7 @@ if __name__ == "__main__":
     circ_list = []
     make_circle_switch = 0
     make_line_switch = 0
+    del_switch = 0
     line_pos = []
 
     #Initalize Button Images
@@ -127,7 +148,7 @@ if __name__ == "__main__":
     minus_button.config(image=minus_photo, width="75", height="75")
 
     #Create Delete Button
-    cross_button = Button(main_window, command=remove_circle)
+    cross_button = Button(main_window, command=switch_on_del)
     cross_button.place(x=400, y=0)
     cross_button.config(image=cross_photo, width="75", height="75")
     
